@@ -13,7 +13,6 @@ PROJECT_ROOT = os.path.abspath(
 )
 
 ENV_PATH = os.path.join(PROJECT_ROOT, "dev.env")
-
 if not os.path.exists(ENV_PATH):
     raise FileNotFoundError(f"dev.env not found at: {ENV_PATH}")
 
@@ -49,26 +48,9 @@ VISIT_MODE_MODEL_PATH = os.path.join(PROJECT_ROOT, VISIT_MODE_MODEL_PATH)
 # =================================================
 # STREAMLIT CONFIG
 # =================================================
-st.set_page_config(
-    page_title=APP_TITLE,
-    layout="wide"
-)
-
+st.set_page_config(page_title=APP_TITLE, layout="wide")
 st.title(APP_TITLE)
-selected_dashboard = option_menu(
-        menu_title="Organization Dashboards",
-        options=[
-            "Trip Quality Validator",
-            "Visit Mode Intelligence"
-        ],
-        icons=[
-            "star-fill",
-            "people-fill"
-        ],
-        menu_icon="building",
-        default_index=0,
-        orientation='horizontal'
-    )
+st.caption("Organization Intelligence Dashboard")
 
 # =================================================
 # LOAD DATA & MODELS
@@ -78,7 +60,7 @@ def load_data():
     return pd.read_csv(DATA_PATH)
 
 @st.cache_resource
-def load_rating_model():
+def load_rating_artifacts():
     return joblib.load(RATING_MODEL_PATH)
 
 @st.cache_resource
@@ -86,11 +68,32 @@ def load_visit_mode_model():
     return joblib.load(VISIT_MODE_MODEL_PATH)
 
 df = load_data()
-rating_model = load_rating_model()
+
+# Rating model artifacts (DICT)
+rating_artifacts = load_rating_artifacts()
+rating_pipeline = rating_artifacts["model"]
+region_frequency_map = rating_artifacts["region_frequency_map"]
+
+# Visit mode model (PIPELINE)
 # visit_mode_model = load_visit_mode_model()
 
 # =================================================
-# SIDEBAR – OPTION MENU
+# TOP NAVIGATION
+# =================================================
+selected_dashboard = option_menu(
+    menu_title="Organization Dashboards",
+    options=[
+        "Trip Quality Validator",
+        "Visit Mode Intelligence"
+    ],
+    icons=["star-fill", "people-fill"],
+    menu_icon="building",
+    default_index=0,
+    orientation="horizontal"
+)
+
+# =================================================
+# SIDEBAR – COMMON INPUTS
 # =================================================
 with st.sidebar:
     st.subheader("🗓️ Travel Planning Inputs")
@@ -119,7 +122,7 @@ with st.sidebar:
     )
 
 # =================================================
-# DASHBOARD 1 – PROBLEM 1 (REGRESSION)
+# DASHBOARD 1 – RATING PREDICTION
 # =================================================
 if selected_dashboard == "Trip Quality Validator":
 
@@ -135,15 +138,21 @@ if selected_dashboard == "Trip Quality Validator":
 
     if st.button("Evaluate Trip Plan"):
 
+        # Frequency encoding for region
+        destination_region_freq = region_frequency_map.get(
+            destination_region,
+            region_frequency_map.mean()
+        )
+
         input_df = pd.DataFrame([{
             "Year_of_Visit": year,
             "Month_of_Visit": month,
             "Attraction_Category": attraction_category,
             "Traveler_Group_Type": traveler_group,
-            "Destination_Region_Name": destination_region
+            "Destination_Region_Freq": destination_region_freq
         }])
 
-        predicted_rating = rating_model.predict(input_df)[0]
+        predicted_rating = rating_pipeline.predict(input_df)[0]
 
         col1, col2 = st.columns(2)
 
@@ -158,7 +167,7 @@ if selected_dashboard == "Trip Quality Validator":
             else:
                 st.error("❌ High risk of dissatisfaction")
 
-        st.markdown("### 📊 Historical Insight")
+        st.markdown("### 📊 Historical Context")
 
         similar = df[
             (df["Attraction_Category"] == attraction_category) &
@@ -168,20 +177,20 @@ if selected_dashboard == "Trip Quality Validator":
 
         if not similar.empty:
             st.write(
-                f"Average rating for similar historical trips: "
+                f"Average historical rating for similar trips: "
                 f"**{similar['User_Rating'].mean():.2f}**"
             )
         else:
-            st.info("Not enough historical data for comparison.")
+            st.info("Not enough historical data for exact comparison.")
 
 # =================================================
-# DASHBOARD 2 – PROBLEM 2 (CLASSIFICATION)
+# DASHBOARD 2 – VISIT MODE INTELLIGENCE
 # =================================================
 if selected_dashboard == "Visit Mode Intelligence":
 
     st.subheader("🧳 Visit Mode Intelligence")
     st.write(
-        "Predict the most likely travel group type to support "
+        "Predict the most likely traveler group type to support "
         "marketing, staffing, and package design."
     )
 
