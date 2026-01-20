@@ -26,34 +26,18 @@ DATA_PATH = os.path.join(PROJECT_ROOT, MASTER_DATA_PATH)
 RATING_MODEL_PATH = os.path.join(PROJECT_ROOT, RATING_MODEL_PATH)
 VISIT_MODE_MODEL_PATH = os.path.join(PROJECT_ROOT, VISIT_MODE_MODEL_PATH)
 
+# raw data load
+@st.cache_data
+def load_data():
+    return pd.read_csv(DATA_PATH)
+
+df = load_data()
+
 ################## Streamlit app config ##################
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 st.title(APP_TITLE)
 st.caption("Organization Intelligence Dashboard")
 
-############# Load Models ######################
-@st.cache_data
-def load_data():
-    return pd.read_csv(DATA_PATH)
-
-@st.cache_resource
-def load_rating_artifacts():
-    return joblib.load(RATING_MODEL_PATH)
-
-@st.cache_resource
-def load_visit_mode_model():
-    return joblib.load(VISIT_MODE_MODEL_PATH)
-
-# raw data load
-df = load_data()
-
-# rating model load 
-rating_artifacts = load_rating_artifacts()
-rating_pipeline = rating_artifacts["model"]
-region_frequency_map = rating_artifacts["region_frequency_map"]
-
-# Visit mode model load
-# visit_mode_model = load_visit_mode_model()
 
 ########## nav bar #############
 selected_dashboard = option_menu(
@@ -94,6 +78,29 @@ with st.sidebar:
         "Destination Region",
         sorted(df["Destination_Region_Name"].dropna().unique())
     )
+
+
+
+############# Load Models ######################
+
+
+@st.cache_resource
+def load_rating_artifacts():
+    return joblib.load(RATING_MODEL_PATH)
+
+@st.cache_resource
+def load_visit_mode_model():
+    return joblib.load(VISIT_MODE_MODEL_PATH)
+
+
+# rating model load 
+rating_artifacts = load_rating_artifacts()
+rating_pipeline = rating_artifacts["model"]
+region_frequency_map = rating_artifacts["region_frequency_map"]
+
+# Visit mode model load
+# visit_mode_model = load_visit_mode_model()
+
 
 ########## Travel quality validator ########################
 if selected_dashboard == "Trip Quality Validator":
