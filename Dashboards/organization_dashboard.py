@@ -5,9 +5,7 @@ import os
 from dotenv import load_dotenv
 from streamlit_option_menu import option_menu
 
-# =================================================
-# PROJECT ROOT & ENV LOADING
-# =================================================
+###### Load envirnment variabel #######
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..")
 )
@@ -18,43 +16,22 @@ if not os.path.exists(ENV_PATH):
 
 load_dotenv(ENV_PATH)
 
-# =================================================
-# READ ENV VARIABLES
-# =================================================
 APP_TITLE = os.getenv("APP_TITLE")
 MASTER_DATA_PATH = os.getenv("MASTER_DATA_PATH")
 RATING_MODEL_PATH = os.getenv("RATING_MODEL_PATH")
 VISIT_MODE_MODEL_PATH = os.getenv("VISIT_MODE_MODEL_PATH")
 
-missing = [
-    name for name, value in {
-        "APP_TITLE": APP_TITLE,
-        "MASTER_DATA_PATH": MASTER_DATA_PATH,
-        "RATING_MODEL_PATH": RATING_MODEL_PATH,
-        "VISIT_MODE_MODEL_PATH": VISIT_MODE_MODEL_PATH
-    }.items() if value is None
-]
 
-if missing:
-    raise ValueError(f"Missing variables in dev.env: {', '.join(missing)}")
-
-# =================================================
-# BUILD ABSOLUTE PATHS
-# =================================================
 DATA_PATH = os.path.join(PROJECT_ROOT, MASTER_DATA_PATH)
 RATING_MODEL_PATH = os.path.join(PROJECT_ROOT, RATING_MODEL_PATH)
 VISIT_MODE_MODEL_PATH = os.path.join(PROJECT_ROOT, VISIT_MODE_MODEL_PATH)
 
-# =================================================
-# STREAMLIT CONFIG
-# =================================================
+################## Streamlit app config ##################
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 st.title(APP_TITLE)
 st.caption("Organization Intelligence Dashboard")
 
-# =================================================
-# LOAD DATA & MODELS
-# =================================================
+############# Load Models ######################
 @st.cache_data
 def load_data():
     return pd.read_csv(DATA_PATH)
@@ -67,19 +44,18 @@ def load_rating_artifacts():
 def load_visit_mode_model():
     return joblib.load(VISIT_MODE_MODEL_PATH)
 
+# raw data load
 df = load_data()
 
-# Rating model artifacts (DICT)
+# rating model load 
 rating_artifacts = load_rating_artifacts()
 rating_pipeline = rating_artifacts["model"]
 region_frequency_map = rating_artifacts["region_frequency_map"]
 
-# Visit mode model (PIPELINE)
+# Visit mode model load
 # visit_mode_model = load_visit_mode_model()
 
-# =================================================
-# TOP NAVIGATION
-# =================================================
+########## nav bar #############
 selected_dashboard = option_menu(
     menu_title="Organization Dashboards",
     options=[
@@ -92,9 +68,7 @@ selected_dashboard = option_menu(
     orientation="horizontal"
 )
 
-# =================================================
-# SIDEBAR – COMMON INPUTS
-# =================================================
+############### side bad filters ###############
 with st.sidebar:
     st.subheader("🗓️ Travel Planning Inputs")
 
@@ -121,9 +95,7 @@ with st.sidebar:
         sorted(df["Destination_Region_Name"].dropna().unique())
     )
 
-# =================================================
-# DASHBOARD 1 – RATING PREDICTION
-# =================================================
+########## Travel quality validator ########################
 if selected_dashboard == "Trip Quality Validator":
 
     st.subheader("⭐ Trip Quality Validator")
@@ -137,8 +109,6 @@ if selected_dashboard == "Trip Quality Validator":
     )
 
     if st.button("Evaluate Trip Plan"):
-
-        # Frequency encoding for region
         destination_region_freq = region_frequency_map.get(
             destination_region,
             region_frequency_map.mean()
@@ -157,7 +127,7 @@ if selected_dashboard == "Trip Quality Validator":
         col1, col2 = st.columns(2)
 
         with col1:
-            st.metric("Predicted Rating (1–5)", round(predicted_rating, 2))
+            st.metric("Predicted Rating (1-5)", round(predicted_rating, 2))
 
         with col2:
             if predicted_rating >= 4:
@@ -183,9 +153,7 @@ if selected_dashboard == "Trip Quality Validator":
         else:
             st.info("Not enough historical data for exact comparison.")
 
-# =================================================
-# DASHBOARD 2 – VISIT MODE INTELLIGENCE
-# =================================================
+################## VISIT MODE INTELLIGENCE #################
 if selected_dashboard == "Visit Mode Intelligence":
 
     st.subheader("🧳 Visit Mode Intelligence")
