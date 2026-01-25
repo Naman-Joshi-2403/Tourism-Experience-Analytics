@@ -83,7 +83,6 @@ with st.sidebar:
 
 ############# Load Models ######################
 
-
 @st.cache_resource
 def load_rating_artifacts():
     return joblib.load(RATING_MODEL_PATH)
@@ -96,7 +95,7 @@ def load_visit_mode_model():
 # rating model load 
 rating_artifacts = load_rating_artifacts()
 rating_pipeline = rating_artifacts["model"]
-region_frequency_map = rating_artifacts["region_frequency_map"]
+region_frequency_map = rating_artifacts["region_frequency_map"] 
 
 # Visit mode model load
 # visit_mode_model = load_visit_mode_model()
@@ -175,20 +174,21 @@ if selected_dashboard == "Visit Mode Intelligence":
             "Year_of_Visit": year,
             "Month_of_Visit": month,
             "Attraction_Category": attraction_category,
-            "Destination_Region_Name": destination_region
+            "Destination_Region_Name": destination_region  
         }])
 
         predicted_mode = visit_mode_model.predict(input_df)[0]
 
         st.metric("Predicted Visit Mode", predicted_mode)
-
+  
         st.markdown("### 🧠 Business Interpretation")
 
         if predicted_mode.lower() == "family":
-            st.info("👨‍👩‍👧 Likely family travelers – promote family-friendly packages.")
+            st.info("👨‍👩‍👧 Likely family travelers - promote family-friendly packages.")
         elif predicted_mode.lower() == "couples":
-            st.info("💑 Couple travel expected – highlight romantic experiences.")
+            st.info("💑 Couple travel expected - highlight romantic experiences.")
         elif predicted_mode.lower() == "business":
-            st.info("💼 Business travel expected – focus on convenience and hotels.")
-        else:
-            st.info("👥 Group travel expected – promote group discounts.")
+            st.info("💼 Business travel expected - focus on convenience and hotels.")
+        else: 
+            st.info("👥 Group travel expected - promote group discounts.") 
+             
