@@ -26,6 +26,7 @@ DATA_PATH = os.path.join(PROJECT_ROOT, MASTER_DATA_PATH)
 RATING_MODEL_PATH = os.path.join(PROJECT_ROOT, RATING_MODEL_PATH)
 VISIT_MODE_MODEL_PATH = os.path.join(PROJECT_ROOT, VISIT_MODE_MODEL_PATH)
 
+
 # raw data load
 @st.cache_data
 def load_data():
@@ -98,7 +99,7 @@ rating_pipeline = rating_artifacts["model"]
 region_frequency_map = rating_artifacts["region_frequency_map"] 
 
 # Visit mode model load
-# visit_mode_model = load_visit_mode_model()
+visit_mode_model = load_visit_mode_model()
 
 
 ########## Travel quality validator ########################
