@@ -5,26 +5,20 @@ import seaborn as sns
 import numpy as np
 from streamlit_option_menu import option_menu
 
-# ---------------------------------------------------
-# Page Config
-# ---------------------------------------------------
+
 st.set_page_config(
     page_title="Tourism EDA Dashboard",
     layout="wide"
 )
 
-# ---------------------------------------------------
-# Load Data
-# ---------------------------------------------------
+
 @st.cache_data
 def load_data():
     return pd.read_csv("Tourism_Final_Master_Analytical.csv")
 
 df = load_data()
 
-# ---------------------------------------------------
-# Sidebar Navigation ONLY
-# ---------------------------------------------------
+### side bar
 with st.sidebar:
     selected = option_menu(
         menu_title="EDA Navigation",
@@ -34,15 +28,12 @@ with st.sidebar:
         default_index=0
     )
 
-# ===================================================
-# 1️⃣ DASHBOARD TAB (WITH FILTERS)
-# ===================================================
+
 if selected == "Dashboard":
 
     st.title("📊 Tourism Experience Analytics – EDA Dashboard")
     st.markdown("Interactive exploration of traveler behavior and attraction trends")
 
-    # ---------------- Filters (INSIDE DASHBOARD) ----------------
     st.subheader("🔎 Dashboard Filters")
 
     col_f1, col_f2 = st.columns(2)
@@ -61,7 +52,6 @@ if selected == "Dashboard":
             default=sorted(df["Year_of_Visit"].dropna().unique())
         )
 
-    # Apply filters
     filtered_df = df[
         (df["Traveler_Home_Continent"].isin(selected_continent)) &
         (df["Year_of_Visit"].isin(selected_year))
@@ -69,7 +59,6 @@ if selected == "Dashboard":
 
     st.markdown("---")
 
-    # ---------------- KPI Section ----------------
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric("Total Visits", filtered_df.shape[0])
@@ -77,7 +66,6 @@ if selected == "Dashboard":
     col3.metric("Attractions", filtered_df["AttractionId"].nunique())
     col4.metric("Avg Rating", round(filtered_df["User_Rating"].mean(), 2))
 
-    # ---------------- Visuals ----------------
     st.subheader("🌍 Travelers by Continent")
     fig1, ax1 = plt.subplots()
     filtered_df["Traveler_Home_Continent"].value_counts().plot(kind="bar", ax=ax1)
@@ -105,7 +93,6 @@ if selected == "Dashboard":
     monthly_trend.plot(kind="line", marker="o", ax=ax5)
     st.pyplot(fig5)
 
-    # ---------------- Correlation Heatmap ----------------
     st.subheader("🔥 Correlation Heatmap")
 
     numerical_cols = [
@@ -122,38 +109,38 @@ if selected == "Dashboard":
     sns.heatmap(corr, annot=True, cmap="coolwarm", linewidths=0.5, ax=ax6)
     st.pyplot(fig6)
 
-# ===================================================
-# 2️⃣ EDA SUMMARY TAB (NO FILTERS)
-# ===================================================
-elif selected == "EDA Summary":
 
-    st.title("🧠 EDA Summar y & Key Takeaways")
+elif selected == "EDA Summary":
+    st.title("🧠 EDA Summary & Key Takeaways")
 
     st.markdown("""
     ### 📌 Data Overview
-    - Dataset represents individual tourist visits with enriched traveler and attraction attributes.
-    - A consolidated analytical table enables efficient EDA and modeling.
+    - This dataset contains individual tourist visit records.
+    - It includes traveler details, attraction details, and visit information.
+    - All required tables were merged into one final dataset for easy analysis.
 
-    ### 🌍 Key Behavioral Patterns
-    - Tourism demand shows strong regional concentration.
-    - Attraction preferences vary significantly by traveler group.
-    - Seasonal trends exist but do not linearly drive satisfaction.
+    ### 🌍 Travel Behavior Patterns
+    - Most tourists are coming from limited regions, not evenly distributed.
+    - Different traveler groups like family, friends, and business prefer different attractions.
+    - Season and month have some impact, but they do not directly decide satisfaction.
 
     ### ⭐ Rating Insights
-    - Ratings are not linearly correlated with numeric features.
-    - Satisfaction is driven by **non-linear interactions** and categorical context.
+    - Ratings are not directly related to numeric values in a straight way.
+    - Tourist satisfaction depends more on visit type, location, and attraction category.
+    - Context matters more than just numbers.
 
-    ### 🔥 Correlation Interpretation
-    - Low linear correlation confirms the absence of multicollinearity.
-    - Identifier columns are excluded from modeling.
-    - Tree-based and ensemble models are justified.
+    ### 🔍 Correlation Understanding
+    - Numerical columns show very low linear correlation.
+    - There is no multicollinearity issue in the dataset.
+    - Because of this, linear models are not the best choice.
 
-    ### 🤖 Modeling Decisions
-    - Preference for Random Forest, XGBoost, LightGBM, CatBoost.
-    - Recommendation systems rely on user–item interaction patterns.
+    ### 🤖 Model Decision Logic
+    - Tree-based models can capture complex patterns better.
+    - Models like Random Forest, XGBoost, LightGBM, and CatBoost are suitable.
+    - Recommendation system works based on user and attraction interaction history.
 
     ### 💡 Business Impact
-    - Enables personalization, segmentation, and targeted marketing.
-    - Supports data-driven tourism strategy and experience optimization.
+    - Helps in customer segmentation and personalization.
+    - Can be used for targeted marketing and recommendations.
+    - Supports better decision-making for tourism platforms.
     """)
- 
