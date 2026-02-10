@@ -1,12 +1,8 @@
 import streamlit as st
 import pandas as pd
-
-# Import recommendation engine
 from SVD_recommendation_system import recommend_for_user_month
 
-# --------------------------------------------------
-# Page Config
-# --------------------------------------------------
+
 st.set_page_config(
     page_title="Tourism Recommendation Dashboard",
     layout="wide"
@@ -19,15 +15,11 @@ st.title("🌍 Tourism Experience Recommendation System")
 st.markdown(
     """
     This dashboard provides **personalized attraction recommendations**
-    using a **machine learning–based SVD recommendation engine**.
+    using a **machine learning-based SVD recommendation engine**.
     """
 )
 
 st.divider()
-
-# --------------------------------------------------
-# Sidebar Filters (NO LOGIN)
-# --------------------------------------------------
 st.sidebar.header("🔎 Recommendation Filters")
 
 user_id = st.sidebar.number_input(
@@ -50,9 +42,6 @@ top_n = st.sidebar.slider(
     value=5
 )
 
-# --------------------------------------------------
-# Main Action
-# --------------------------------------------------
 st.subheader("🎯 Recommended Attractions")
 
 if st.sidebar.button("Get Recommendations"):
@@ -63,16 +52,15 @@ if st.sidebar.button("Get Recommendations"):
             top_n=top_n
         )
 
-    # --------------------------------------------------
-    # Handle Output
-    # --------------------------------------------------
+
     if isinstance(result, str):
         st.warning(result)
     else:
         st.success("Here are the top attractions for you 👇")
         st.dataframe(
             result,
-            use_container_width=True
+            use_container_width=True,
+            hide_index = True
         )
 
 else:
@@ -80,10 +68,3 @@ else:
         "👈 Please select filters from the sidebar and click **Get Recommendations**"
     )
 
-# --------------------------------------------------
-# Footer
-# --------------------------------------------------
-st.divider()
-st.caption(
-    "📊 Powered by SVD-based Collaborative Filtering | Tourism Experience Analytics"
-)
