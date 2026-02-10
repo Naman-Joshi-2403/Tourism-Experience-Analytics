@@ -8,9 +8,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# --------------------------------------------------
-# Header
-# --------------------------------------------------
 st.title("🌍 Tourism Experience Recommendation System")
 st.markdown(
     """
