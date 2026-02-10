@@ -62,6 +62,13 @@ def train_svd_month(selected_month, n_components= 30):
         values = "User_Rating"
     ).fillna(0)
 
+    num_user, num_item = user_item_matrix.shape
+    max_components = min(num_user, num_item) - 1
+    n_components = min(n_components, max_components)
+
+    if n_components < 2:
+        return None
+
     ### Train SVD
     svd = TruncatedSVD(
         n_components = n_components,
@@ -118,11 +125,3 @@ def recommend_for_user_month(user_id, month, top_n = 5):
 
     return recommendation
 
-test_user = df["UserId"].iloc[120]
-test_month = df["Month_of_Visit"].iloc[0]
-
-print(recommend_for_user_month(
-    user_id=test_user,
-    month=test_month,
-    top_n=5
-))
